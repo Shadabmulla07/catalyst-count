@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% load static %}
+{% block body %}
+    <link rel="stylesheet" href="{% static "css/users.css" %}"/>
+    <div class="container">
+        <div class="msg">
+            {% if messages %}
+                {% for msg in messages %}
+                    <div class="alert alert-{{msg.tags}}" style="padding:1px; margin: 10px; float: right;" role="alert">
+                        <h5 class="alert-heading">{{msg}}</h5>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        </div>
+        <div class="hiddenclass hidden" id="hidden">
+            <form method="POST" enctype="multipart/form-data" action="/insert/">
+                {% csrf_token %}
+                <label for="username">Username</label>
+                <input type="text" name="username">
+                <label for="firstname">First Name</label>
+                <input type="text" name="firstname">
+                <label for="lastname">Last Name</label>
+                <input type="text" name="lastname">
+                <label for="password">Password</label>
+                <input type="password" name="password">
+                <input type="submit" class="btn btn-dark btn-sm mx-1" style="width: 120px;" value="submit">
+            </form>
+        </div>
+        <br></br>
+        <input type="button" name="button" id="togbutton" class="btn btn-dark btn-sm mx-1" style="float: right; margin-top: 10px;" value="New User">
+        <br></br>
+        <div class="mytable">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th scope="col">SNO</th>
+                        <th scope="col">User Name</th>
+                        <th scope="col">First Name</th>
+                        <th scope="col">Last Name</th>
+                        <th scope="col">Active</th>
+                        <th scope="col">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for todo in userdata %}
+                    <tr>
+                        <td>{{todo.id}}</td>
+                        <td>{{todo.user.username}}</td>
+                        <td>{{todo.user.first_name}}</td>
+                        <td>{{todo.user.last_name}}</td>
+                        <td>{{todo.loginflag}}</td>
+                        <td>
+                            <a href="/delete/{{todo.id}}" type="'button" class="btn btn-dark btn-sm mx-1">Delete</button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <script src="{% static "js/user.js" %}"></script>
+{% endblock body %}

@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% load static %}
+{% block body %}
+    <link rel="stylesheet" href="{% static "css/query.css" %}"/>
+    <div class="msg">
+        {% if messages %}
+            {% for msg in messages %}
+                <div class="alert alert-{{msg.tags}}" style="padding:1px; margin: 10px; float: right;" role="alert">
+                    <h5 class="alert-heading">{{msg}}</h5>
+                </div>
+            {% endfor %}
+        {% endif %}
+    </div>
+    <div class="container"style='margin-top:60px'>
+        <div class="newform">
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <input type="text" placeholder="company name" name="Companyname">
+            <input type="text" placeholder="Domain" name="Domain">
+            <input type="text" placeholder="Year Founded" name="Yearfounded">
+            <input type="text" placeholder="Country" name="Country">
+            <input type="text" placeholder="Current employees" name="Currenteployees">
+            <input type="text" placeholder="Total employees" name="Totalemployees">
+            <input type="submit" id="submit" class="btn btn-dark btn-sm mx-1" value="Submit">
+        </form>
+        </div>
+    </div>
+    <script src="{% static "js/style.js" %}"></script>
+{% endblock body %}

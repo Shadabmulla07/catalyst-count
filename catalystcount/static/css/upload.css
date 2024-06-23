@@ -1,0 +1,52 @@
+.excelfile{
+    position: absolute;
+    top:50%;
+    left:50%;
+    transform: translate(-50%,-50%);
+    max-width: 500px;
+    width: 100%;
+    background: #fff;
+    border-radius: 7px;
+    box-shadow: 0 5px 10px rgba(22,19,19,0.3);
+}
+
+body{
+    min-height: 100vh;
+    width: 100%;
+    background: #5ecdd4;
+}
+    
+#browse{
+    background: #009579;
+    color:#fff;
+    font-weight: 500;
+    cursor: pointer;
+    margin: 10px 0px 0px 5px;
+}
+#submit{
+    background: #009579;
+    color:#fff;
+    font-weight: 500;
+    cursor: pointer;
+    margin: 10px 0px 5px 0px;
+}
+.excelpage{
+    position: absolute;
+    top:50%;
+    left:50%;
+    transform: translate(-50%,-50%);
+    max-width: 500px;
+    width: 100%;
+    background-color: #fff;
+    border-radius: 7px;
+    box-shadow: 0 5px 10px rgba(22,19,19,0.3);
+    padding:10px;
+    text-align: center;
+}
+
+.excelframe{
+    margin-top: 10px;
+}
+.hidden{
+    display: none;
+}
