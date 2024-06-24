@@ -48,21 +48,15 @@ def upload(request):
         if student.is_valid(): 
             print("hiiiii")
             print(request.FILES['file'])
-            upload_dir = os.path.join(settings.BASE_DIR, 'upload')  # Construct upload directory path
+            upload_dir = os.path.join(settings.BASE_DIR, 'upload') 
             if not os.path.exists(upload_dir):
-                os.makedirs(upload_dir)  # Create upload directory if it doesn't exist
+                os.makedirs(upload_dir)
             f=request.FILES['file']
-            file_path = os.path.join(upload_dir, f.name)  # Construct full file path
+            file_path = os.path.join(upload_dir, f.name) 
             print(file_path)
             with open(file_path, 'wb+') as destination:
                 for chunk in f.chunks():
                     destination.write(chunk) 
-            exceldata=pd.read_csv(file_path)
-            values=exceldata.values.tolist()
-            print(values)
-            for i in values:
-                print(i)
-                ExcelData.objects.create(companyid=i[0],name=i[1],domain=i[2],yearfounded=i[3],industy=i[4],sizerange=i[5],locality=i[6],county=i[7],linkedinurl=i[8],currentemployee=i[9],totalemployee=i[10])
             messages.success(request,"File uploaded successfuly") 
             return redirect('/upload')
     return render(request,'upload.html',{'form':excelForm}) 
@@ -72,28 +66,41 @@ def querybuilder(request):
     if request.method == 'POST': 
         filters = {}
         company_name = request.POST.get('Companyname')
-        print(company_name)
         domain = request.POST.get('Domain')
         year_founded = request.POST.get('Yearfounded')
         country = request.POST.get('Country')
         current_employees = request.POST.get('Currenteployees')
         total_employees = request.POST.get('Totalemployees')
-
         if company_name:
-            filters['name__icontains'] = company_name
+            filters['name'] = company_name
         if domain:
-            filters['domain__icontains'] = domain
+            filters['domain'] = domain
         if year_founded:
-            filters['yearfounded'] = year_founded
+            filters['year founded'] = year_founded
         if country:
-            filters['county__icontains'] = country
+            filters['country'] = country
         if current_employees:
-            filters['currentemployee'] = current_employees
+            filters['current employee estimate'] = current_employees
         if total_employees:
-            filters['totalemployee'] = total_employees
-        # try:
-        count = ExcelData.objects.filter(**filters).count()
-        messages.success(request,str(count)+' records found for the query')
+            filters['total employee estimate'] = total_employees
+        upload_dir = os.path.join(settings.BASE_DIR, 'upload')
+        exceldata=[]
+        for f in os.listdir(upload_dir):
+            exceldata.append(pd.read_csv(os.path.join(upload_dir, f) ))
+
+        if not exceldata:
+            return HttpResponse("No data found")
+
+        df = pd.concat(exceldata, ignore_index=True)
+        print(df)
+
+        # Apply filters to the DataFrame
+        for column, value in filters.items():
+            df = df[df[column].astype(str).str.contains(str(value), case=False, na=False)]
+
+        row_count = df.shape[0]
+        print("Filtered row count:", row_count)
+        messages.success(request,str(row_count)+' records found for the query')
         return redirect('/querybuilder')
         # except Exception as e:
         #     return redirect('/querybuilder')
@@ -103,7 +110,6 @@ def querybuilder(request):
 def insert(request):
     try:
         password=request.POST.get('password')
-        print(password)
         print(request.POST.get('username'))
         print(request.POST.get('firstname'))
         print(request.POST.get('lastname'))
