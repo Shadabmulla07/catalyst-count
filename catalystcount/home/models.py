@@ -15,3 +15,18 @@ class CoreUser(models.Model):
 
     class Meta:
         db_table='coreuser'
+
+class ExcelData(models.Model):
+    name=models.CharField(max_length=300)
+    domain=models.CharField(max_length=300)
+    yearfounded=models.CharField(max_length=10)
+    industry=models.CharField(max_length=100)
+    sizerange=models.CharField(max_length=100)
+    locality=models.CharField(max_length=100)
+    country=models.CharField(max_length=100)	
+    linkedinurl=models.CharField(max_length=300)
+    currentemployeeestimate=models.CharField(max_length=300)
+    totalemployeeestimate=models.CharField(max_length=300)
+
+    class Meta:
+        db_table='exceldata'
