@@ -8,6 +8,12 @@ from home.forms import excelForm
 from django.contrib.auth.hashers import make_password
 import pandas as pd
 from django.conf import settings
+from rest_framework import status
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from .serializers import QueryBuilderSerializer
+from django.views.decorators.csrf import csrf_exempt
+from django.http import JsonResponse
 import os
 # Create your views here.
 def mylogin(request):
@@ -57,54 +63,66 @@ def upload(request):
             with open(file_path, 'wb+') as destination:
                 for chunk in f.chunks():
                     destination.write(chunk) 
+            chunk_size = 10000 #declare chunk size as per your server performance
+            for chunk in pd.read_csv(file_path, chunksize=chunk_size):
+                records = [
+                    ExcelData(
+                        name=row['name'],
+                        domain=row['domain'],
+                        yearfounded=row['year founded'],
+                        industry=row['industry'],
+                        sizerange=row['size range'],
+                        locality=row['locality'],
+                        country=row['country'],
+                        linkedinurl=row['linkedin url'],
+                        currentemployeeestimate=row['current employee estimate'],
+                        totalemployeeestimate=row['total employee estimate']
+                    ) for _, row in chunk.iterrows()
+                ]
+                ExcelData.objects.bulk_create(records)
             messages.success(request,"File uploaded successfuly") 
             return redirect('/upload')
     return render(request,'upload.html',{'form':excelForm}) 
 
+@csrf_exempt
+def querybuilder_api(request):
+    if request.method == 'POST':
+        serializer = QueryBuilderSerializer(data=request.POST)
+        if serializer.is_valid():
+            filters = {}
+            company_name = serializer.validated_data.get('Companyname')
+            domain = serializer.validated_data.get('Domain')
+            year_founded = serializer.validated_data.get('Yearfounded')
+            country = serializer.validated_data.get('Country')
+            current_employees = serializer.validated_data.get('Currenteployees')
+            total_employees = serializer.validated_data.get('Totalemployees')
+
+            if company_name:
+                filters['name__icontains'] = company_name  # Adjust based on your model field names
+            if domain:
+                filters['domain__icontains'] = domain
+            if year_founded:
+                filters['year_founded'] = year_founded
+            if country:
+                filters['country__icontains'] = country
+            if current_employees:
+                filters['current_employee_estimate'] = current_employees
+            if total_employees:
+                filters['total_employee_estimate'] = total_employees
+
+            try:
+                filtered_data = ExcelData.objects.filter(**filters)
+                row_count = filtered_data.count()
+                print(row_count)
+                return JsonResponse(row_count, safe=False)
+                # return Response({'row_count': row_count, 'data': list(filtered_data.values())})
+            except:
+                return Response({'error': 'Unknown error'})
+
+    return Response({'error': 'Only POST method is allowed'}, status=405)
+
 @login_required(login_url='/')
 def querybuilder(request):
-    if request.method == 'POST': 
-        filters = {}
-        company_name = request.POST.get('Companyname')
-        domain = request.POST.get('Domain')
-        year_founded = request.POST.get('Yearfounded')
-        country = request.POST.get('Country')
-        current_employees = request.POST.get('Currenteployees')
-        total_employees = request.POST.get('Totalemployees')
-        if company_name:
-            filters['name'] = company_name
-        if domain:
-            filters['domain'] = domain
-        if year_founded:
-            filters['year founded'] = year_founded
-        if country:
-            filters['country'] = country
-        if current_employees:
-            filters['current employee estimate'] = current_employees
-        if total_employees:
-            filters['total employee estimate'] = total_employees
-        upload_dir = os.path.join(settings.BASE_DIR, 'upload')
-        exceldata=[]
-        for f in os.listdir(upload_dir):
-            exceldata.append(pd.read_csv(os.path.join(upload_dir, f) ))
-
-        if not exceldata:
-            messages.warning(request,"No data found")
-        try:
-            
-            df = pd.concat(exceldata, ignore_index=True)
-            print(df)
-            for column, value in filters.items():
-                df = df[df[column].astype(str).str.contains(str(value), case=False, na=False)]
-
-            row_count = df.shape[0]
-            print("Filtered row count:", row_count)
-            messages.success(request,str(row_count)+' records found for the query')
-        except:
-            messages.warning(request,'No records found for the query')
-        return redirect('/querybuilder')
-        # except Exception as e:
-        #     return redirect('/querybuilder')
     return render(request,'querybuilder.html') 
 
 @login_required(login_url='/')
